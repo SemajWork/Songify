@@ -1,11 +1,15 @@
 import { Button } from "@react-navigation/elements";
-import { Text, View, TextInput, StyleSheet, Dimensions } from "react-native";
+import { Text, View, TextInput, StyleSheet, Dimensions, Image,TouchableOpacity} from "react-native";
+import { useRouter } from "expo-router";
 import {useState} from 'react'
 
 
 export default function Index() {
   const [userInput,setUserInput] = useState<string>("")
   const {width,height} = Dimensions.get("window");
+
+  const router = useRouter();
+
   return (
     <View
       style={{
@@ -22,11 +26,12 @@ export default function Index() {
         }}>Songify</Text>
       </View>
       <View style={{marginTop:height*0.1}}>
+        
         <Text style={{
           fontWeight:'bold',
           color:"white",
           fontSize: 20
-        }}>Log in to Songify</Text>
+        }}>Try Songify Today</Text>
       </View>
       <View style={{marginTop:height*0.01}}>
         <Text style={{
@@ -40,13 +45,18 @@ export default function Index() {
         }}>Edit your playlists with the swipe of a finger</Text>
       </View>
       <View style={{marginTop:height*0.15}}>
-        <Button onPress={()=>alert(userInput)} style={{
-        width: width*0.8,
-        height: height*0.05,
-        backgroundColor:'#1DB954',
-        alignContent:"center",
-        justifyContent:"center"
-      }} color="black">Continue with Spotify</Button>  
+        <TouchableOpacity style={{
+          flexDirection:"row",
+          alignItems:'center',
+          justifyContent:"center",
+          width:width*0.8,
+          height: height*0.05,
+          backgroundColor:'#1DB954',
+          borderRadius:24,
+        }} onPress={()=>router.replace('/home')}>
+          <Image source={require("../assets/images/Spotify-icon-black-png-large-size.png")} style={{height:height*0.03, width: width*0.07, marginRight: 20}}/>
+          <Text style={{fontSize:22,fontWeight:"medium"}}>Continue with Spotify</Text>
+        </TouchableOpacity>
       </View>
       
       <View style={{marginTop: height*0.2, }}>
