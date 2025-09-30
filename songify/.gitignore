@@ -1,0 +1,114 @@
+# Node
+node_modules/
+
+# Expo
+.expo/
+.expo-shared/
+
+# React Native / Android
+android/.gradle/
+android/app/build/
+android/local.properties
+android/*/local.properties
+android/*.keystore
+
+# iOS
+ios/Pods/
+ios/DerivedData/
+ios/build/
+*.xcworkspace
+*.xcuserstate
+
+# Metro / bundler caches
+.expo/web/cache/
+.expo/web-build/
+.expo/*-cache/
+.cache/
+metro-cache/
+
+# Build output
+build/
+dist/
+web-build/
+
+# TypeScript
+*.tsbuildinfo
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.log
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Editors and IDEs
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Coverage
+coverage/
+
+# Misc
+*.pdb
+*.class
+*.jar
+*.keystore
+
+# Optional: ignore local node_modules at repository root (uncomment if needed)
+## /node_modules/
+
+# Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
+
+# dependencies
+node_modules/
+
+# Expo
+.expo/
+dist/
+web-build/
+expo-env.d.ts
+
+# Native
+.kotlin/
+*.orig.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+
+# Metro
+.metro-health-check*
+
+# debug
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# macOS
+.DS_Store
+*.pem
+
+# local env files
+.env*.local
+
+# typescript
+*.tsbuildinfo
+
+app-example
+
+# generated native folders
+/ios
+/android
