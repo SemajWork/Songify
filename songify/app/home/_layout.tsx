@@ -5,7 +5,7 @@ export default function RootLayout() {
     <>
       <Stack> 
         <Stack.Screen name="index" options={{title: 'Home',headerStyle:{backgroundColor:"white"}}}></Stack.Screen>
-        <Stack.Screen name="playlist"></Stack.Screen> {/* Will be my homepage */}
+        <Stack.Screen name="playlist" options={{headerShown:false}}></Stack.Screen> {/* Will be my homepage */}
       </Stack>
     </>
 );
