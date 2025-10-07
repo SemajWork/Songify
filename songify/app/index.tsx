@@ -2,7 +2,7 @@ import { Button } from "@react-navigation/elements";
 import { Text, View, TextInput, StyleSheet, Dimensions, Image,TouchableOpacity, Linking, Alert} from "react-native";
 import { useRouter } from "expo-router";
 import {useState} from 'react'
-
+import Auth0 from 'react-native-auth0';
 
 export default function Index() {
   const [userInput,setUserInput] = useState<string>("")
@@ -36,7 +36,7 @@ export default function Index() {
         backgroundColor:"white"
       }}
     >  
-      <View style={{marginTop:height*0.2,flexDirection:"row", alignItems: "center"}}>
+      <View style={{marginTop:height*0.15,flexDirection:"row", alignItems: "center"}}>
         <Image source={require("../assets/images/MusicIcon.png")} style={{width:width*0.11,height:height*0.05, marginRight:width*0.02}}/>
         <Text style={{
           fontWeight:'bold',
