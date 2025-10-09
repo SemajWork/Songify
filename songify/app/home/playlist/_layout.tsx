@@ -17,7 +17,7 @@ export default function RootLayout() {
     return (
     <>
       <Stack> 
-        <Stack.Screen name="index" options={{headerLeft: () => <BackButton/> ,title: name,headerBackButtonDisplayMode: 'default',headerShown: true,headerStyle:{backgroundColor:"white"}}}></Stack.Screen>
+        <Stack.Screen name="index" options={{headerLeft: () => <BackButton/> ,title: name,headerBackButtonDisplayMode: 'default',headerShown: false,headerStyle:{backgroundColor:"white"}}}></Stack.Screen>
       </Stack>
     </>
 );

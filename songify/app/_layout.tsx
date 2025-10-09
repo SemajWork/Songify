@@ -1,13 +1,13 @@
 import { Stack } from "expo-router";
-
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 export default function RootLayout() {
   return (
-    
+    <GestureHandlerRootView style={{ flex: 1 }}>
       <Stack> 
-        <Stack.Screen name="index" options={{headerShown: false,headerStyle:{backgroundColor:"white"}}}></Stack.Screen>
-        <Stack.Screen name="home" options={{headerShown:false}}></Stack.Screen> {/* Will be my homepage */}
+        <Stack.Screen name="index" options={{headerShown: false}}></Stack.Screen>
+        <Stack.Screen name="home" options={{headerShown:false}}></Stack.Screen>
       </Stack>
-    
+    </GestureHandlerRootView>
   );
 }
