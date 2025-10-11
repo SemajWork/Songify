@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, ScrollView, StyleSheet, Dimensions, TextInput } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, Dimensions, TextInput, Button, Image, TouchableOpacity, Modal} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useState } from 'react';
 import { useRouter } from 'expo-router';
@@ -8,6 +8,8 @@ import PlaylistItem from '../../components/PlaylistItem';
 export default function Index() {
   const router = useRouter();
   const [name,setName] = useState<string>('Joe')
+  const [windowOpen, setWindowOpen] = useState<boolean>(false);
+  const {width,height} = Dimensions.get("window");
   const [searchQuery, setSearchQuery] = useState<string>('')
   // Data matching the Spotify playlist menu from your image
   const playlistData = [
@@ -73,12 +75,20 @@ export default function Index() {
     item.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const logout = () => {
+    console.log("Logging out");
+    router.replace('/');
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       {/* Fixed Header */}
       <View style={styles.pinnedTop}>
         <View style={styles.header}>
           <Text style={styles.greeting}>Good {new Date().getHours() < 12 ? 'Morning' : new Date().getHours() < 18 ? 'Afternoon' : 'Evening'}, {name}</Text>
+          <TouchableOpacity onPress={()=>setWindowOpen(!windowOpen)}>
+            <Image source={require("../../assets/images/gear-icon-9.png")} style={{width:width*0.07, height: height*0.03}}/>
+          </TouchableOpacity>
         </View>
         <View style={styles.searchContainer}>
           <TextInput 
@@ -90,6 +100,82 @@ export default function Index() {
           />
         </View>
       </View>
+      <Modal visible={windowOpen} transparent={true} animationType="fade" onRequestClose={()=>setWindowOpen(false)}>
+        <TouchableOpacity 
+          activeOpacity={1}
+          onPress={()=>setWindowOpen(false)}
+          style={{
+            flex: 1, 
+            justifyContent: 'center', 
+            alignItems: 'center', 
+            backgroundColor: 'rgba(0,0,0,0.5)',
+          }}
+        >
+          <TouchableOpacity activeOpacity={1} onPress={(e) => e.stopPropagation()}>
+            <View style={{
+              backgroundColor: '#282828',
+              borderRadius: 16,
+              padding: 20,
+              width: 280,
+              alignItems: 'center',
+            }}>
+              <Text style={{color: '#fff', fontSize: 22, fontWeight: 'bold', marginBottom: 20}}>
+                Settings
+              </Text>
+              
+              {/* Help Button */}
+              <TouchableOpacity 
+                onPress={() => {
+                  setWindowOpen(false);
+                  // Navigate to help or show help
+                }}
+                style={{
+                  backgroundColor: '#1DB954',
+                  padding: 14,
+                  borderRadius: 24,
+                  width: '100%',
+                  alignItems: 'center',
+                  marginBottom: 12,
+                }}
+              >
+                <Text style={{color: '#fff', fontWeight: 'bold', fontSize: 16}}>Help</Text>
+              </TouchableOpacity>
+              
+              {/* Logout Button */}
+              <TouchableOpacity 
+                onPress={() => {
+                  setWindowOpen(false);
+                  logout();
+                }}
+                style={{
+                  backgroundColor: '#ff4444',
+                  padding: 14,
+                  borderRadius: 24,
+                  width: '100%',
+                  alignItems: 'center',
+                  marginBottom: 12,
+                }}
+              >
+                <Text style={{color: '#fff', fontWeight: 'bold', fontSize: 16}}>Logout</Text>
+              </TouchableOpacity>
+              
+              {/* Cancel Button */}
+              <TouchableOpacity 
+                onPress={() => setWindowOpen(false)}
+                style={{
+                  backgroundColor: '#404040',
+                  padding: 14,
+                  borderRadius: 24,
+                  width: '100%',
+                  alignItems: 'center',
+                }}
+              >
+                <Text style={{color: '#fff', fontSize: 16}}>Cancel</Text>
+              </TouchableOpacity>
+            </View>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
       
       {/* Scrollable Content */}
       <ScrollView 
@@ -130,6 +216,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 20,
     paddingBottom: 24,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignContent: 'center',
+    alignItems: 'center',
   },
   greeting: {
     fontSize: 32,

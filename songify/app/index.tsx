@@ -44,9 +44,6 @@ export default function Index() {
           fontSize: 50
         }}>Songify</Text>
       </View>
-      <View>
-        <Text>Testing for me</Text>
-      </View>
       <View style={{marginTop:height*0.1}}>
         
         <Text style={{
