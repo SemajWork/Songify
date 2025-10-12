@@ -4,6 +4,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useState } from 'react';
 import { useRouter } from 'expo-router';
 import PlaylistItem from '../../components/PlaylistItem';
+import * as AuthSession from 'expo-auth-session';
+import * as SecureStore from 'expo-secure-store';
 
 export default function Index() {
   const router = useRouter();
@@ -75,8 +77,10 @@ export default function Index() {
     item.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const logout = () => {
-    console.log("Logging out");
+  const logout = () => { //logs you out by deleting the tokens from the secure store
+    SecureStore.deleteItemAsync('access_token');
+    SecureStore.deleteItemAsync('refresh_token');
+    SecureStore.deleteItemAsync('expires_at');
     router.replace('/');
   }
 

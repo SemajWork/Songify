@@ -1,16 +1,45 @@
 import { Button } from "@react-navigation/elements";
 import { Text, View, TextInput, StyleSheet, Dimensions, Image,TouchableOpacity, Linking, Alert} from "react-native";
 import { useRouter } from "expo-router";
-import {useState} from 'react'
-import Auth0 from 'react-native-auth0';
+import {useState, useEffect} from 'react'
+import { useSpotifyAuth } from '../services/authService';
+import * as SecureStore from 'expo-secure-store';
 
 export default function Index() {
   const [userInput,setUserInput] = useState<string>("")
   const {width,height} = Dimensions.get("window");
 
   const router = useRouter();
-  const promptLogin = async () =>{
-    
+  const { request, response, promptAsync } = useSpotifyAuth();
+
+  // Check if user is already logged in
+  useEffect(() => {
+    const checkAuthStatus = async () => {
+      try {
+        const token = await SecureStore.getItemAsync('access_token');
+        if (token) {
+          router.replace('/home');
+        }
+      } catch (error) {
+        console.error('Error checking auth status:', error);
+      }
+    };
+    checkAuthStatus();
+  }, []);
+
+  // Redirect to home when authentication succeeds
+  useEffect(() => {
+    if (response?.type === 'success') {
+      router.replace('/home');
+    }
+  }, [response]);
+
+  const handleLogin = async () => {
+    try {
+      await promptAsync();
+    } catch (error) {
+      Alert.alert('Login Failed', 'Please try again');
+    }
   }
   const redirect = (link: string) => {
     Alert.alert(
@@ -72,7 +101,7 @@ export default function Index() {
           height: height*0.05,
           backgroundColor:'#1DB954',
           borderRadius:24,
-        }} onPress={()=>router.replace('/home')}>
+        }} onPress={handleLogin} disabled={!request}>
           <Image source={require("../assets/images/Spotify-icon-black-png-large-size.png")} style={{height:height*0.03, width: width*0.07, marginRight: width*0.05}}/>
           <Text style={{fontSize:22,fontWeight:"medium"}}>Continue with Spotify</Text>
         </TouchableOpacity>
