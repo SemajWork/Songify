@@ -11,8 +11,8 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import SwipeableSongCard from '../../../components/SwipeableSongCard';
 
 export default function Playlist() {
-  const params = useLocalSearchParams() as { name?: string };
-  const name = params?.name ?? 'Playlist';
+  const params = useLocalSearchParams() as { playlistObject? : string };
+  const playlistData = params.playlistObject ? JSON.parse(params.playlistObject) : null;
   const router = useRouter();
   
   const [currentSongIndex, setCurrentSongIndex] = useState(0);

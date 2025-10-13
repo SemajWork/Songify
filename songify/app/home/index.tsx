@@ -27,68 +27,31 @@ export default function Index() {
     }
     loadUserName();
   }, [])
-  
-  const playlistData = [
-    {
-      id: '1',
-      title: 'Liked Songs',
-      description: 'Playlist • 7,343 songs',
-      type: 'liked' as const,
-      onPress: () => router.push('/home/playlist?name=Liked Songs'),
-    },
-    {
-      id: '2',
-      title: 'My Favorite Playlists',
-      description: '• 2 playlists',
-      type: 'folder' as const,
-      showArrow: true,
-      onPress: () => router.push('/home/playlist?name=My Favorite Playlists'),
-    },
-    {
-      id: '3',
-      title: 'Matt Suda: JAMS',
-      description: '• Playlist • Matt Suda',
-      type: 'playlist' as const,
-      imageUrl: undefined, // You can add actual image URLs here
-      onPress: () => router.push('/home/playlist?name=Matt Suda: JAMS'),
-    },
-    {
-      id: '4',
-      title: 'Matt Suda: Collection',
-      description: '• Playlist • Matt Suda',
-      type: 'playlist' as const,
-      imageUrl: undefined,
-      onPress: () => router.push('/home/playlist?name=Matt Suda: Collection'),
-    },
-    {
-      id: '5',
-      title: 'How To Be Human',
-      description: 'Album • Chelsea Cutler',
-      type: 'album' as const,
-      imageUrl: undefined,
-      onPress: () => router.push('/home/playlist?name=How To Be Human'),
-    },
-    {
-      id: '6',
-      title: 'How it Used to Feel',
-      description: 'Album • Phoebe Ryan',
-      type: 'album' as const,
-      imageUrl: undefined,
-      onPress: () => router.push('/home/playlist?name=How it Used to Feel'),
-    },
-    {
-      id: '7',
-      title: 'A Letter To My Younger Self',
-      description: 'Album • Quinn XCII',
-      type: 'album' as const,
-      imageUrl: undefined,
-      onPress: () => router.push('/home/playlist?name=A Letter To My Younger Self'),
-    },
-  ];
+  const [playlist,setPlaylist] = useState<any[]>([]);
+  useEffect(()=>{
+    const fetchPlaylists = async () => {
+      try{
+        const user_id = await SecureStore.getItemAsync('user_id');
+        const getPlaylist = await fetch(`https://api.spotify.com/v1/users/${user_id}/playlists`,{
+          headers:{
+            'Authorization': `Bearer ${await SecureStore.getItemAsync('access_token')}`
+          },
+        })
+        if(!getPlaylist.ok){
+          throw new Error('Failed to fetch playlists');
+        }
+        const playlists = await getPlaylist.json();
+        setPlaylist(playlists.items);
+      }catch(error){
+        console.error('Error fetching playlists',error);
+      }
+    }
+    fetchPlaylists();
+  }, [])
 
   // Filter playlists based on search query
-  const filteredPlaylistData = playlistData.filter(item =>
-    item.title.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredPlaylistData = playlist.filter(item =>
+    item.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const logout = () => { //logs you out by deleting the tokens from the secure store
@@ -97,7 +60,14 @@ export default function Index() {
     SecureStore.deleteItemAsync('expires_at');
     router.replace('/');
   }
-
+  const handlePlaylistPress = (item: any) => {
+    router.push({
+      pathname: '/home/playlist',
+      params: {
+        playlistObject: JSON.stringify(item)
+      }
+    });
+  }
   return (
     
     <SafeAreaView style={styles.container}>
@@ -206,12 +176,12 @@ export default function Index() {
           {filteredPlaylistData.map((item) => (
             <PlaylistItem
               key={item.id}
-              title={item.title}
+              title={item.name}
               description={item.description}
-              imageUrl={item.imageUrl}
+              imageUrl={item.images[0].url}
               type={item.type}
               showArrow={item.showArrow}
-              onPress={item.onPress}
+              onPress={()=>handlePlaylistPress(item)}
             />
           ))}
         </View>
