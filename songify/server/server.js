@@ -1,16 +1,15 @@
 import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
-import authRoutes from './routes/auth.js';
-import playlistRoutes from '../server/routes/playlists.js'
-import walRoutes from '../server/routes/wal.js';
+import playlistRoutes from './routes/playlists.js'
+import walRoutes from './routes/wal.js';
 
 dotenv.config()
 
 const app = express();
 app.use(express.json());
 app.use(cors({
-    origin: ['http://localhost:8081', 'exp://192.168.1.100:8081', 'exp://localhost:8081'],
+    origin: ['http://localhost:8081', 'exp://10.0.0.9:8081', 'http://10.0.0.9:8081'],
     credentials: true,
 })); //allow for cross origin requests
 
@@ -19,7 +18,7 @@ app.use('/wal', walRoutes);
 
 app.post('/auth/token', async (req,res) => {
     try{
-        const {code} = req.body;
+        const {code, code_verifier} = req.body;
         if (!code){
             return res.status(400).json({error: 'No code provided'})
         }
@@ -29,9 +28,14 @@ app.post('/auth/token', async (req,res) => {
                 Authorization: `Basic ${Buffer.from(`${process.env.SPOTIFY_CLIENT_ID}:${process.env.SPOTIFY_CLIENT_SECRET}`).toString('base64')}`,
                 'Content-Type': 'application/x-www-form-urlencoded',
             },
-            body: `grant_type=authorization_code&code=${code}&redirect_uri=songify://auth`
+            body: new URLSearchParams({
+                grant_type: 'authorization_code',
+                code: code,
+                code_verifier: code_verifier,
+                redirect_uri: 'songify://auth'
+            }).toString()
         });
-
+        
         if(!response.ok){
             return res.status(response.status).json({error: 'Token exchange failed'});
         }
@@ -43,28 +47,34 @@ app.post('/auth/token', async (req,res) => {
         res.status(500).json({error:'Token exchange failed'});
     }
 });
-app.get('/auth/refresh', async(req,res)=>{
+app.post('/auth/refresh', async(req,res)=>{
     try{
-        const authOptions = await fetch('https://accounts.spotify.com/api/token',{
+        const { refresh_token } = req.body;
+        if (!refresh_token) {
+            return res.status(400).json({error: 'No refresh token provided'});
+        }
+
+        const response = await fetch('https://accounts.spotify.com/api/token',{
             method: 'POST',
             headers:{
-                'content-type': 'application/x-www-form-urlencoded',
+                'Content-Type': 'application/x-www-form-urlencoded',
                 'Authorization': `Basic ${Buffer.from(`${process.env.SPOTIFY_CLIENT_ID}:${process.env.SPOTIFY_CLIENT_SECRET}`).toString('base64')}`
             },
-            form: {
-                grant_type: 'refresh_token',
-                refresh_token: SecureStore.getItemAsync('refresh_token'),
-            },
-            json: true
-        })
-        if(!authOptions.ok){
-            return res.status(authOptions.status).json({error: 'Token refresh failed'});
+            body: `grant_type=refresh_token&refresh_token=${refresh_token}`
+        });
+        
+        if(!response.ok){
+            return res.status(response.status).json({error: 'Token refresh failed'});
         }
-        const tokens = await authOptions.json();
-        res.send(tokens);
+        
+        const tokens = await response.json();
+        res.json(tokens);
     }catch(error){
         console.error('Token refresh failed',error);
     }
 })
 const PORT = process.env.PORT || 5000;
-app.listen(PORT,() => console.log(`Server is being ran on http://localhost:${PORT}`)) //testing purposes will relay where server is being ran on
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Server is being ran on http://localhost:${PORT}`);
+    console.log(`Network access: http://10.0.0.9:${PORT}`);
+}); //testing purposes will relay where server is being ran on

@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, ScrollView, StyleSheet, Dimensions, TextInput, Button, Image, TouchableOpacity, Modal} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useState } from 'react';
+import { useState,useEffect } from 'react';
 import { useRouter } from 'expo-router';
 import PlaylistItem from '../../components/PlaylistItem';
 import * as AuthSession from 'expo-auth-session';
@@ -9,11 +9,25 @@ import * as SecureStore from 'expo-secure-store';
 
 export default function Index() {
   const router = useRouter();
-  const [name,setName] = useState<string>('Joe')
+  const [name, setName] = useState <string | null>('');
   const [windowOpen, setWindowOpen] = useState<boolean>(false);
   const {width,height} = Dimensions.get("window");
   const [searchQuery, setSearchQuery] = useState<string>('')
   // Data matching the Spotify playlist menu from your image
+  useEffect(()=>{
+    const loadUserName = async () =>{
+      try{
+        const name = await SecureStore.getItemAsync('user_name');
+        if(name){
+          setName(name);
+        }
+      }catch(error){
+        console.error('Error loading user name',error);
+      }
+    }
+    loadUserName();
+  }, [])
+  
   const playlistData = [
     {
       id: '1',
@@ -85,6 +99,7 @@ export default function Index() {
   }
 
   return (
+    
     <SafeAreaView style={styles.container}>
       {/* Fixed Header */}
       <View style={styles.pinnedTop}>

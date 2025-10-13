@@ -12,52 +12,57 @@ export const useSpotifyAuth = () => {
             clientId: clientId,
             scopes: ['user-read-email', 'user-read-private', 'playlist-modify-public', 'playlist-modify-private', 'playlist-read-private', 'playlist-read-collaborative'],
             redirectUri: 'songify://auth',
+            usePKCE: true,
         },
         {
             authorizationEndpoint: 'https://accounts.spotify.com/authorize',
         }
     );
-    
+    const fetchUser = async () =>{
+        try{
+            const accessToken = await SecureStore.getItemAsync('access_token');
+
+            if (!accessToken) throw new Error('No access token found');
+
+            const response = await fetch('https://api.spotify.com/v1/me',{
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`
+                }
+            })
+
+            if (!response.ok) throw new Error('Failed to fetch user');
+
+            const user = await response.json();
+
+            if (user.id && user.display_name){
+                await SecureStore.setItemAsync('user_id',user.id);
+                await SecureStore.setItemAsync('user_name',user.display_name);
+                console.log('User data stored successfully:', user.display_name);
+            }else{
+                throw new Error('Invalid user data');
+            }
+        }catch(error){
+            console.error('Error fetching user',error);
+        }
+    };
     useEffect(() => {
         if (response?.type === 'success') {
-            console.log('Response is success, starting token exchange');
-            const { code } = response.params;
+            const { code} = response.params;
 
-            const fetchUser = async () =>{
-                try{
-                    const accessToken = await SecureStore.getItemAsync('access_token');
-        
-                    if (!accessToken) throw new Error('No access token found');
-        
-                    const response = await fetch('https://api.spotify.com/v1/me',{
-                        method: 'GET',
-                        headers: {
-                            'Authorization': `Bearer ${accessToken}`
-                        }
-                    })
-        
-                    if (!response.ok) throw new Error('Failed to fetch user');
-        
-                    const user = await response.json();
-        
-                    if (user.id && user.display_name){
-                        await SecureStore.setItemAsync('user_id',user.id);
-                        await SecureStore.setItemAsync('user_name',user.display_name);
-                        console.log('User data stored successfully:', user.display_name);
-                    }else{
-                        throw new Error('Invalid user data');
-                    }
-                }catch(error){
-                    console.error('Error fetching user',error);
-                }
-            };
-
-            fetch('http://192.168.1.100:5000/auth/token', {
+            console.log('Sending code to backend...');
+            fetch('http://10.0.0.9:5000/auth/token', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ code })
+                body: JSON.stringify({ code, code_verifier: request?.codeVerifier })
             })
-            .then(res => res.json())
+            .then(async res => {
+                if (!res.ok) {
+                    const errorData = await res.json();
+                    throw new Error(`Backend error: ${errorData.error || 'Unknown error'}`);
+                }
+                return res.json();
+            })
             .then(async tokens => {
                 // Store both access and refresh tokens
                 await Promise.all([
@@ -66,12 +71,13 @@ export const useSpotifyAuth = () => {
                     SecureStore.setItemAsync('expires_at', String(Date.now() + (tokens.expires_in*1000)))  
                 ]);
             })
-            .then(()=>{
+            .then(async ()=>{
                 console.log('Fetching user');
-                fetchUser();
+                await fetchUser();
             })
             .catch(error => {
                 console.error('Token exchange failed:', error);
+                console.error('Error details:', error.message);
             });
         }
     }, [response]);
@@ -88,7 +94,15 @@ export const isExpired = async () => {
 
     if (expired){
         try{
-            const response = await fetch('http://192.168.1.100:5000/auth/refresh')
+            const refreshToken = await SecureStore.getItemAsync('refresh_token');
+            if (!refreshToken) return true;
+
+            const response = await fetch('http://10.0.0.9:5000/auth/refresh', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ refresh_token: refreshToken })
+            });
+            
             if (response.ok){
                 const tokens = await response.json();
 

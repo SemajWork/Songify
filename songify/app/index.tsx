@@ -2,7 +2,7 @@ import { Button } from "@react-navigation/elements";
 import { Text, View, TextInput, StyleSheet, Dimensions, Image,TouchableOpacity, Linking, Alert} from "react-native";
 import { useRouter } from "expo-router";
 import {useState, useEffect} from 'react'
-import { useSpotifyAuth } from '../services/authService';
+import { useSpotifyAuth } from '../components/authService';
 import * as SecureStore from 'expo-secure-store';
 
 export default function Index() {
@@ -12,7 +12,7 @@ export default function Index() {
   const router = useRouter();
   const { request, response, promptAsync } = useSpotifyAuth();
 
-  // Check if user is already logged in
+  // Check if user is already logged in - poll for access token after auth
   useEffect(() => {
     const checkAuthStatus = async () => {
       try {
@@ -24,14 +24,8 @@ export default function Index() {
         console.error('Error checking auth status:', error);
       }
     };
+    
     checkAuthStatus();
-  }, []);
-
-  // Redirect to home when authentication succeeds
-  useEffect(() => {
-    if (response?.type === 'success') {
-      router.replace('/home');
-    }
   }, [response]);
 
   const handleLogin = async () => {
