@@ -11,6 +11,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import SwipeableSongCard from '../../../components/SwipeableSongCard';
 import * as SecureStore from 'expo-secure-store';
+import { isExpired } from '../../../components/authService';
 
 export default function Playlist() {
   const params = useLocalSearchParams() as { playlistObject? : string };
@@ -47,6 +48,7 @@ export default function Playlist() {
         setSongs(allSongs || []);
         setIsLoading(false);
       }catch(error){
+        await isExpired();
         console.error('Error fetching songs',error);
         setIsLoading(false);
       }

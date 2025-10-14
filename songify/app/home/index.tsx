@@ -6,6 +6,7 @@ import { useRouter } from 'expo-router';
 import PlaylistItem from '../../components/PlaylistItem';
 import * as AuthSession from 'expo-auth-session';
 import * as SecureStore from 'expo-secure-store';
+import { isExpired } from '../../components/authService';
 
 export default function Index() {
   const router = useRouter();
@@ -22,6 +23,7 @@ export default function Index() {
           setName(name);
         }
       }catch(error){
+        await isExpired();
         console.error('Error loading user name',error);
       }
     }
@@ -43,6 +45,7 @@ export default function Index() {
         const playlists = await getPlaylist.json();
         setPlaylist(playlists.items.filter((item:any)=>item.owner.id === user_id));
       }catch(error){
+        await isExpired();
         console.error('Error fetching playlists',error);
       }
     }

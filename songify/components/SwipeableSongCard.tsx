@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useEffect} from 'react';
 import { 
   View, 
   Text, 
@@ -9,6 +9,7 @@ import {
   Image 
 } from 'react-native';
 import { PanGestureHandler } from 'react-native-gesture-handler';
+import {useAudioPlayer} from 'expo-audio';
 
 interface SwipeableSongCardProps {
   song: {
@@ -20,6 +21,7 @@ interface SwipeableSongCardProps {
         images: Array<{ url: string }>;
       };
       duration_ms: number;
+      preview_url: string;
     };
   };
   onSwipeLeft: () => void;
@@ -31,6 +33,7 @@ interface SwipeableSongCardProps {
 const { width, height } = Dimensions.get('window');
 const SWIPE_THRESHOLD = width * 0.05;
 
+
 export default function SwipeableSongCard({ 
   song, 
   onSwipeLeft, 
@@ -40,8 +43,18 @@ export default function SwipeableSongCard({
 }: SwipeableSongCardProps) {
   const translateX = useRef(new Animated.Value(0)).current;
   const translateY = useRef(new Animated.Value(0)).current;
-  
 
+  const songPlay = useAudioPlayer(song.track.preview_url,{updateInterval: 1000, downloadFirst: true});
+
+  useEffect(()=>{
+    const toPlay = () => {
+      if (song.track.preview_url !== null){
+        songPlay.play();
+      }
+    }
+    toPlay();
+  }, [songPlay])
+  
   const onGestureEvent = Animated.event(
     [{ nativeEvent: { translationX: translateX, translationY: translateY } }],
     { useNativeDriver: true }

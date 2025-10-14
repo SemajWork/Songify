@@ -2,7 +2,7 @@ import { Button } from "@react-navigation/elements";
 import { Text, View, TextInput, StyleSheet, Dimensions, Image,TouchableOpacity, Linking, Alert} from "react-native";
 import { useRouter } from "expo-router";
 import {useState, useEffect} from 'react'
-import { useSpotifyAuth } from '../components/authService';
+import { useSpotifyAuth, isExpired } from '../components/authService';
 import * as SecureStore from 'expo-secure-store';
 
 export default function Index() {
@@ -19,7 +19,12 @@ export default function Index() {
       try {
         const token = await SecureStore.getItemAsync('access_token');
         if (token) {
-          router.replace('/home');
+          const expired = await isExpired();
+          if(expired){
+            router.replace('/');
+          }else{
+            router.replace('/home');
+          }
         }else{
           attempts++;
           if (attempts < 10){
