@@ -1,14 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef} from 'react';
 import { 
   View, 
   Text, 
   StyleSheet, 
-  SafeAreaView, 
   TouchableOpacity,
-  StatusBar 
+  StatusBar,
+  Animated,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import SwipeableSongCard from '../../../components/SwipeableSongCard';
+import * as SecureStore from 'expo-secure-store';
 
 export default function Playlist() {
   const params = useLocalSearchParams() as { playlistObject? : string };
@@ -16,46 +18,80 @@ export default function Playlist() {
   const router = useRouter();
   
   const [currentSongIndex, setCurrentSongIndex] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
   
-  // Mock song data
-  const songs = [
-    {
-      id: '1',
-      title: 'Bohemian Rhapsody',
-      artist: 'Queen',
-      album: 'A Night at the Opera',
-      duration: '5:55',
-    },
-    {
-      id: '2',
-      title: 'Hotel California',
-      artist: 'Eagles',
-      album: 'Hotel California',
-      duration: '6:30',
-    },
-    {
-      id: '3',
-      title: 'Imagine',
-      artist: 'John Lennon',
-      album: 'Imagine',
-      duration: '3:07',
-    },
-    {
-      id: '4',
-      title: 'Stairway to Heaven',
-      artist: 'Led Zeppelin',
-      album: 'Led Zeppelin IV',
-      duration: '8:02',
-    },
-    {
-      id: '5',
-      title: 'Sweet Child O\' Mine',
-      artist: 'Guns N\' Roses',
-      album: 'Appetite for Destruction',
-      duration: '5:56',
-    },
-  ];
+  // song data for playlist
+  const [songs,setSongs]= useState<any[]>([]);
+  useEffect(()=>{
+    const fetchSongs = async () =>{
+      try{
+        const playlist_id = playlistData.id;
+        let allSongs: any[] = [];
+        let offset = 0;
+        let hasMore = true;
+        while (hasMore){
+          const response = await fetch(`https://api.spotify.com/v1/playlists/${playlist_id}/tracks?limit=100&offset=${offset}`,{
+          headers:{
+            'Authorization': `Bearer ${await SecureStore.getItemAsync('access_token')}`
+            }
+          });
+          if(!response.ok){
+            throw new Error('Failed to fetch playlist');
+          }
+          const data = await response.json();
+          allSongs = [...allSongs, ...data.items];
+          hasMore = data.next !== null;
+          offset += 100;
+        }
 
+        setSongs(allSongs || []);
+        setIsLoading(false);
+      }catch(error){
+        console.error('Error fetching songs',error);
+        setIsLoading(false);
+      }
+    };
+    fetchSongs();
+  }, [playlistData.id])
+
+  const shakeAnimation = useRef(new Animated.Value(0)).current;
+  
+  const startShake = () => {
+    Animated.sequence([
+      Animated.timing(shakeAnimation,{
+        toValue: 0.3,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+      Animated.timing(shakeAnimation,{
+        toValue: -0.3,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+      Animated.timing(shakeAnimation,{
+        toValue: 0.2,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+      Animated.timing(shakeAnimation,{
+        toValue: 0,
+        duration: 100,
+        useNativeDriver: true,
+      })
+    ]).start(() => {
+      // Loop the animation while loading
+      if (isLoading) {
+        startShake();
+      }
+    });
+  }
+
+  // Start shaking when loading begins
+  useEffect(() => {
+    if (isLoading) {
+      startShake();
+    }
+  }, [isLoading]);
   const handleSwipeLeft = () => {
     // Delete song
     console.log('Song deleted:', songs[currentSongIndex]);
@@ -88,15 +124,40 @@ export default function Playlist() {
   const goBack = () => {
     router.back();
   };
-
-  if (currentSongIndex >= songs.length) {
+  if(isLoading){
+    return(
+      <SafeAreaView style={styles.container}>
+        <StatusBar barStyle="light-content" backgroundColor="#121212" />
+        <View style={styles.loadingContainer}>
+          <Text style={styles.loadingTitle}>Loading Playlist...</Text>
+          <Text style={styles.loadingSubtitle}>
+            Fetching songs from {playlistData?.name}
+          </Text>
+          <View style={styles.loadingSpinner}>
+           <Animated.Text 
+             style={[styles.loadingText,
+               {
+                 transform: [{ rotate: shakeAnimation.interpolate({
+                   inputRange: [-1, 1],
+                   outputRange: ['-30deg', '30deg']
+                 })}]
+               }
+             ]}>
+             ⏳
+           </Animated.Text>
+        </View>
+        </View>
+      </SafeAreaView>
+    )
+  }
+  if (currentSongIndex >= songs.length && isLoading === false) {
     return (
       <SafeAreaView style={styles.container}>
         <StatusBar barStyle="light-content" backgroundColor="#121212" />
         <View style={styles.completedContainer}>
           <Text style={styles.completedTitle}>Review Complete!</Text>
           <Text style={styles.completedSubtitle}>
-            You've reviewed all songs in {name}
+            You've reviewed all songs in {playlistData.name}
           </Text>
           <TouchableOpacity style={styles.backButton} onPress={goBack}>
             <Text style={styles.backButtonText}>← Back to Playlists</Text>
@@ -116,7 +177,7 @@ export default function Playlist() {
           <Text style={styles.backIcon}>←</Text>
         </TouchableOpacity>
         <View style={styles.headerContent}>
-          <Text style={styles.playlistName}>{name}</Text>
+          <Text style={styles.playlistName}>{playlistData.name}</Text>
           <Text style={styles.songCounter}>
             {currentSongIndex + 1} of {songs.length}
           </Text>
@@ -192,5 +253,35 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#1DB954',
     fontWeight: '600',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 32,
+  },
+  loadingTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#fff',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  loadingSubtitle: {
+    fontSize: 16,
+    color: '#b3b3b3',
+    textAlign: 'center',
+    marginBottom: 32,
+  },
+  loadingSpinner: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#2a2a2a',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    fontSize: 24,
   },
 });

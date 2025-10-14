@@ -12,19 +12,24 @@ export default function Index() {
   const router = useRouter();
   const { request, response, promptAsync } = useSpotifyAuth();
 
-  // Check if user is already logged in - poll for access token after auth
+  // Check if user is already logged in on mount
   useEffect(() => {
+    var attempts = 0;
     const checkAuthStatus = async () => {
       try {
         const token = await SecureStore.getItemAsync('access_token');
         if (token) {
           router.replace('/home');
+        }else{
+          attempts++;
+          if (attempts < 10){
+            setTimeout(checkAuthStatus,500);
+          }
         }
-      } catch (error) {
+      }catch (error) {
         console.error('Error checking auth status:', error);
       }
     };
-    
     checkAuthStatus();
   }, [response]);
 
@@ -35,6 +40,7 @@ export default function Index() {
       Alert.alert('Login Failed', 'Please try again');
     }
   }
+  
   const redirect = (link: string) => {
     Alert.alert(
         `Warning you are about to be redirected to: ${link} `,

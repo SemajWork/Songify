@@ -12,12 +12,15 @@ import { PanGestureHandler } from 'react-native-gesture-handler';
 
 interface SwipeableSongCardProps {
   song: {
-    id: string;
-    title: string;
-    artist: string;
-    album: string;
-    duration: string;
-    imageUrl?: string;
+    track: {
+      name: string;
+      artists: Array<{ name: string }>;
+      album: {
+        name: string;
+        images: Array<{ url: string }>;
+      };
+      duration_ms: number;
+    };
   };
   onSwipeLeft: () => void;
   onSwipeRight: () => void;
@@ -158,9 +161,9 @@ export default function SwipeableSongCard({
         >
           {/* Full Card Background Image */}
           <View style={styles.cardBackground}>
-            {song.imageUrl ? (
-              <Image 
-                source={{ uri: song.imageUrl }} 
+            {song.track?.album?.images?.[0]?.url ? (
+              <Image
+                source={{ uri: song.track.album.images[0].url }}
                 style={styles.fullCardImage}
                 resizeMode="cover"
               />
@@ -176,17 +179,15 @@ export default function SwipeableSongCard({
           {/* Song Info - positioned over image */}
           <View style={styles.songInfoOverlay}>
             <Text style={styles.songTitle} numberOfLines={2}>
-              {song.title}
+              {song.track?.name}
             </Text>
             <Text style={styles.songArtist} numberOfLines={1}>
-              {song.artist}
+              {song.track?.artists?.[0]?.name}
             </Text>
             <Text style={styles.songAlbum} numberOfLines={1}>
-              {song.album}
+              {song.track?.album?.name}
             </Text>
-            <Text style={styles.songDuration}>
-              {song.duration}
-            </Text>
+            
           </View>
 
         </Animated.View>

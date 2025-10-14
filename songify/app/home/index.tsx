@@ -41,7 +41,7 @@ export default function Index() {
           throw new Error('Failed to fetch playlists');
         }
         const playlists = await getPlaylist.json();
-        setPlaylist(playlists.items);
+        setPlaylist(playlists.items.filter((item:any)=>item.owner.id === user_id));
       }catch(error){
         console.error('Error fetching playlists',error);
       }
