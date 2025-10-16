@@ -26,8 +26,6 @@ interface SwipeableSongCardProps {
   };
   onSwipeLeft: () => void;
   onSwipeRight: () => void;
-  onDelete: () => void;
-  onKeep: () => void;
 }
 
 const { width, height } = Dimensions.get('window');
@@ -37,9 +35,7 @@ const SWIPE_THRESHOLD = width * 0.05;
 export default function SwipeableSongCard({ 
   song, 
   onSwipeLeft, 
-  onSwipeRight, 
-  onDelete, 
-  onKeep
+  onSwipeRight
 }: SwipeableSongCardProps) {
   const translateX = useRef(new Animated.Value(0)).current;
   const translateY = useRef(new Animated.Value(0)).current;

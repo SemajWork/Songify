@@ -12,6 +12,8 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import SwipeableSongCard from '../../../components/SwipeableSongCard';
 import * as SecureStore from 'expo-secure-store';
 import { isExpired } from '../../../components/authService';
+import { Alert } from 'react-native';
+import FlashMessage, { showMessage } from 'react-native-flash-message';
 
 export default function Playlist() {
   const params = useLocalSearchParams() as { playlistObject? : string };
@@ -57,7 +59,39 @@ export default function Playlist() {
   }, [playlistData.id])
 
   const shakeAnimation = useRef(new Animated.Value(0)).current;
-  
+  const commitChanges = async () => {
+    try{
+      fetch(`https://api.spotify.com/v1/playlists/${playlistData.id}/tracks`,{
+        method: 'DELETE',
+        headers:{
+          'Authorization': `Bearer ${await SecureStore.getItemAsync('access_token')}`,
+          'Content-Type': 'application/json',
+        },body:JSON.stringify({
+          tracks: songActions
+        })
+      })
+      .then(()=>Alert.alert('Changes applied successfully!','Redirecting'))
+      .then(()=>setTimeout(()=>router.back(),1000)) ;
+    }catch(error){
+      console.error("Error committing changes",error);
+    }
+  }
+  const doSave = () =>{
+    Alert.alert(
+      'Save Changes',
+      `Do you want to save your changes to ${playlistData.name}?`,
+      [
+        {
+          text: 'No',
+          style: 'cancel',
+        },
+        {
+          text: 'Yes',
+          onPress: () => commitChanges(),
+        },
+      ],
+    );
+  };
   const startShake = () => {
     Animated.sequence([
       Animated.timing(shakeAnimation,{
@@ -87,7 +121,7 @@ export default function Playlist() {
       }
     });
   }
-
+  const [songActions,setSongActions] = useState<any[]>([]);
   // Start shaking when loading begins
   useEffect(() => {
     if (isLoading) {
@@ -96,22 +130,34 @@ export default function Playlist() {
   }, [isLoading]);
   const handleSwipeLeft = () => {
     // Delete song
-    console.log('Song deleted:', songs[currentSongIndex]);
+    setSongActions([...songActions,{uri: songs[currentSongIndex].track.uri}]);
+    showMessage({
+      message: `Removed: ${songs[currentSongIndex].track.name}`,
+      type: "success",
+      duration: 1500,
+      backgroundColor: "#ff4444",
+      titleStyle:{
+        fontSize:16,
+        fontWeight:'600',
+        textAlign:'center',
+      }
+    });
     nextSong();
   };
 
   const handleSwipeRight = () => {
     // Keep song
-    console.log('Song kept:', songs[currentSongIndex]);
+    showMessage({
+      message: `Kept: ${songs[currentSongIndex].track.name}`,
+      type: "success",
+      duration: 1500,
+      titleStyle:{
+        fontSize:16,
+        fontWeight:'600',
+        textAlign:'center'
+      }
+    });
     nextSong();
-  };
-
-  const handleDelete = () => {
-    handleSwipeLeft();
-  };
-
-  const handleKeep = () => {
-    handleSwipeRight();
   };
 
   const nextSong = () => {
@@ -175,15 +221,24 @@ export default function Playlist() {
       
       {/* Header */}
       <View style={styles.header}>
+
         <TouchableOpacity onPress={goBack} style={styles.backButton}>
           <Text style={styles.backIcon}>←</Text>
         </TouchableOpacity>
+
         <View style={styles.headerContent}>
           <Text style={styles.playlistName}>{playlistData.name}</Text>
           <Text style={styles.songCounter}>
             {currentSongIndex + 1} of {songs.length}
           </Text>
         </View>
+
+        <View>
+          <TouchableOpacity style={{backgroundColor:"#1DB954", padding: 12,borderRadius: 24}} onPress={doSave}>
+            <Text style={{color:"white", fontSize: 16, fontWeight: '600'}}>Save</Text>
+          </TouchableOpacity>
+        </View>
+        
       </View>
 
       {/* Swipeable Song Card */}
@@ -191,9 +246,9 @@ export default function Playlist() {
         song={songs[currentSongIndex]}
         onSwipeLeft={handleSwipeLeft}
         onSwipeRight={handleSwipeRight}
-        onDelete={handleDelete}
-        onKeep={handleKeep}
       />
+
+      <FlashMessage position="top" />
     </SafeAreaView>
   );
 }

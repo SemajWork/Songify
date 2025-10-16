@@ -38,6 +38,7 @@ export const useSpotifyAuth = () => {
             if (user.id && user.display_name){
                 await SecureStore.setItemAsync('user_id',user.id);
                 await SecureStore.setItemAsync('user_name',user.display_name);
+                await SecureStore.setItemAsync('subscription_type',user.product)
                 console.log('User data stored successfully:', user.display_name);
             }else{
                 throw new Error('Invalid user data');
