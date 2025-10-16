@@ -1,8 +1,6 @@
 import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
-import playlistRoutes from './routes/playlists.js'
-import walRoutes from './routes/wal.js';
 
 dotenv.config()
 
@@ -13,8 +11,6 @@ app.use(cors({
     credentials: true,
 })); //allow for cross origin requests
 
-app.use('/playlist', playlistRoutes);
-app.use('/wal', walRoutes);
 
 app.post('/auth/token', async (req,res) => {
     try{
@@ -32,7 +28,7 @@ app.post('/auth/token', async (req,res) => {
                 grant_type: 'authorization_code',
                 code: code,
                 code_verifier: code_verifier,
-                redirect_uri: '' /* put your scheme here such that {scheme}://{whatever callback uri you want} i.e boop://bop */
+                redirect_uri: `${process.env.REDIRECT_URI}` /* put your scheme here such that {scheme}://{whatever callback uri you want} i.e boop://bop */
             }).toString()
         });
         
