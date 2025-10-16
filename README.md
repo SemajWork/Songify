@@ -5,10 +5,7 @@ Remove songs with the swipe of a finger
 - **React Native** with Expo
 - **Expo Router** for navigation
 - **TypeScript** for type safety
-- **React Native Gesture Handler** for swipe gestures
 - **Node.js** with Express
-- **Spotify Web API** integration
-- **CORS** enabled for cross-origin requests
 
 ## Prerequisites
 
