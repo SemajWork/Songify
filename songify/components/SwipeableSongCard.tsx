@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { PanGestureHandler } from 'react-native-gesture-handler';
 import {useAudioPlayer} from 'expo-audio';
-
+//swipe
 interface SwipeableSongCardProps {
   song: {
     track: {
