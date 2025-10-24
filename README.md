@@ -5,10 +5,7 @@ Remove songs with the swipe of a finger
 - **React Native** with Expo
 - **Expo Router** for navigation
 - **TypeScript** for type safety
-- **React Native Gesture Handler** for swipe gestures
 - **Node.js** with Express
-- **Spotify Web API** integration
-- **CORS** enabled for cross-origin requests
 
 ## Prerequisites
 
@@ -59,6 +56,14 @@ For your own sake, after cloning this repository:
 - should be the scheme you put + :// + whatever uri you want (Example: Scheme: boop => redirect_uri: boop://asdf ; where asdf is custom uri)
 - Lastly add this call back to your spotify developer dashboard as one of the Redirect URIs
 
+SCHEME in app.json:
+<img width="392" height="286" alt="image" src="https://github.com/user-attachments/assets/ad509ef8-d34b-4d72-a0cd-f01a80acb043" />
+
+You should have added to your .env
+```
+REDIRECT_URI: {SCHEME}://{whatever you want to put}
+```
+
 ## Running the App
 
 ### Start the Backend Server
@@ -76,6 +81,12 @@ In command line, type ipconfig then scroll down in terminal until you see IPv4 A
 After you have these values, add to your .env file
 BACKENDHOST and update with your ip address such that http://{ipaddress}:port -- where port is whatever port you're hosting on
 and exp://{ipaddress}:port, but this is not neccessary
+
+You should have added
+```
+BACKENDHOST = exp://{ipaddress}:port (optional, delete other BACKENDHOST in cors if not added)
+BACKENDHOST2 = http://{ipaddress}:port
+```
 
 ### Start the Frontend
 ```bash
