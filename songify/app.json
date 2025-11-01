@@ -3,7 +3,7 @@
     "name": "songify",
     "slug": "songify",
     "version": "1.0.0",
-    "orientation": "portrait",
+    "orientation": "all",
     "icon": "./assets/images/icon.png",
     "scheme": "changethisbeforeyouuse", 
     "userInterfaceStyle": "automatic",
