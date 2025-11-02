@@ -95,13 +95,12 @@ export default function Index() {
           fontSize: 20
         }}>Try Songify Today</Text>
       </View>
-      <View style={{marginTop:height*0.01, width: width*0.8, alignItems: 'center'}}>
+      <View style={{marginTop:height*0.01, width: width*0.8, alignItems: 'center', paddingHorizontal: 20}}>
         <Text style={{
           fontWeight:'bold',
           color:"gray",
           fontSize: 20,
-          textAlign:'center',
-          flexWrap: 'wrap'
+          textAlign:'center'
         }}>Edit your playlists with the swipe of a finger</Text>
       </View>
       <View style={{marginTop:height*0.15}}>
