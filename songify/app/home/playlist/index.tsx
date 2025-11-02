@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   StatusBar,
   Animated,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -33,9 +34,12 @@ export default function Playlist() {
         let offset = 0;
         let hasMore = true;
         while (hasMore){
+          const accessToken = Platform.OS === 'web' 
+            ? localStorage.getItem('access_token')
+            : await SecureStore.getItemAsync('access_token');
           const response = await fetch(`https://api.spotify.com/v1/playlists/${playlist_id}/tracks?limit=100&offset=${offset}`,{
           headers:{
-            'Authorization': `Bearer ${await SecureStore.getItemAsync('access_token')}`
+            'Authorization': `Bearer ${accessToken}`
             }
           });
           if(!response.ok){
@@ -61,10 +65,13 @@ export default function Playlist() {
   const shakeAnimation = useRef(new Animated.Value(0)).current;
   const commitChanges = async () => {
     try{
+      const accessToken = Platform.OS === 'web' 
+        ? localStorage.getItem('access_token')
+        : await SecureStore.getItemAsync('access_token');
       fetch(`https://api.spotify.com/v1/playlists/${playlistData.id}/tracks`,{
         method: 'DELETE',
         headers:{
-          'Authorization': `Bearer ${await SecureStore.getItemAsync('access_token')}`,
+          'Authorization': `Bearer ${accessToken}`,
           'Content-Type': 'application/json',
         },body:JSON.stringify({
           tracks: songActions

@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, ScrollView, StyleSheet, Dimensions, TextInput, Button, Image, TouchableOpacity, Modal} from 'react-native';
+import { View, Text, ScrollView, StyleSheet, Dimensions, TextInput, Button, Image, TouchableOpacity, Modal, Platform} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useState,useEffect } from 'react';
 import { useRouter } from 'expo-router';
@@ -18,7 +18,9 @@ export default function Index() {
   useEffect(()=>{
     const loadUserName = async () =>{
       try{
-        const name = await SecureStore.getItemAsync('user_name');
+        const name = Platform.OS === 'web' 
+          ? localStorage.getItem('user_name')
+          : await SecureStore.getItemAsync('user_name');
         if(name){
           setName(name);
         }
@@ -33,10 +35,15 @@ export default function Index() {
   useEffect(()=>{
     const fetchPlaylists = async () => {
       try{
-        const user_id = await SecureStore.getItemAsync('user_id');
+        const user_id = Platform.OS === 'web' 
+          ? localStorage.getItem('user_id')
+          : await SecureStore.getItemAsync('user_id');
+        const accessToken = Platform.OS === 'web' 
+          ? localStorage.getItem('access_token')
+          : await SecureStore.getItemAsync('access_token');
         const getPlaylist = await fetch(`https://api.spotify.com/v1/users/${user_id}/playlists`,{
           headers:{
-            'Authorization': `Bearer ${await SecureStore.getItemAsync('access_token')}`
+            'Authorization': `Bearer ${accessToken}`
           },
         })
         if(!getPlaylist.ok){
@@ -58,9 +65,15 @@ export default function Index() {
   );
 
   const logout = () => { //logs you out by deleting the tokens from the secure store
-    SecureStore.deleteItemAsync('access_token');
-    SecureStore.deleteItemAsync('refresh_token');
-    SecureStore.deleteItemAsync('expires_at');
+    if (Platform.OS === 'web') {
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('refresh_token');
+      localStorage.removeItem('expires_at');
+    } else {
+      SecureStore.deleteItemAsync('access_token');
+      SecureStore.deleteItemAsync('refresh_token');
+      SecureStore.deleteItemAsync('expires_at');
+    }
     router.replace('/');
   }
   const handlePlaylistPress = (item: any) => {

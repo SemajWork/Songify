@@ -21,7 +21,9 @@ export const useSpotifyAuth = () => {
     );
     const fetchUser = async () =>{
         try{
-            const accessToken = await SecureStore.getItemAsync('access_token');
+            const accessToken = Platform.OS === 'web' 
+                ? localStorage.getItem('access_token')
+                : await SecureStore.getItemAsync('access_token');
 
             if (!accessToken) throw new Error('No access token found');
 
@@ -37,9 +39,15 @@ export const useSpotifyAuth = () => {
             const user = await response.json();
 
             if (user.id && user.display_name){
-                await SecureStore.setItemAsync('user_id',user.id);
-                await SecureStore.setItemAsync('user_name',user.display_name);
-                await SecureStore.setItemAsync('subscription_type',user.product)
+                if (Platform.OS === 'web') {
+                    localStorage.setItem('user_id', user.id);
+                    localStorage.setItem('user_name', user.display_name);
+                    localStorage.setItem('subscription_type', user.product);
+                } else {
+                    await SecureStore.setItemAsync('user_id',user.id);
+                    await SecureStore.setItemAsync('user_name',user.display_name);
+                    await SecureStore.setItemAsync('subscription_type',user.product);
+                }
                 console.log('User data stored successfully:', user.display_name);
             }else{
                 throw new Error('Invalid user data');
@@ -68,11 +76,17 @@ export const useSpotifyAuth = () => {
             })
             .then(async tokens => {
                 // Store both access and refresh tokens
-                await Promise.all([
-                    SecureStore.setItemAsync('access_token', tokens.access_token),
-                    SecureStore.setItemAsync('refresh_token', tokens.refresh_token),
-                    SecureStore.setItemAsync('expires_at', String(Date.now() + (tokens.expires_in*1000)))  
-                ]);
+                if (Platform.OS === 'web') {
+                    localStorage.setItem('access_token', tokens.access_token);
+                    localStorage.setItem('refresh_token', tokens.refresh_token);
+                    localStorage.setItem('expires_at', String(Date.now() + (tokens.expires_in*1000)));
+                } else {
+                    await Promise.all([
+                        SecureStore.setItemAsync('access_token', tokens.access_token),
+                        SecureStore.setItemAsync('refresh_token', tokens.refresh_token),
+                        SecureStore.setItemAsync('expires_at', String(Date.now() + (tokens.expires_in*1000)))  
+                    ]);
+                }
             })
             .then(async ()=>{
                 console.log('Fetching user');
@@ -90,14 +104,18 @@ export const useSpotifyAuth = () => {
 
 export const isExpired = async () => {
 
-    const expiresAt = await SecureStore.getItemAsync('expires_at');
+    const expiresAt = Platform.OS === 'web' 
+        ? localStorage.getItem('expires_at')
+        : await SecureStore.getItemAsync('expires_at');
     if (!expiresAt) return true; // access token is not set
 
     const expired =  Date.now() > parseInt(expiresAt); //returns true if date is past expiry date
 
     if (expired){
         try{
-            const refreshToken = await SecureStore.getItemAsync('refresh_token');
+            const refreshToken = Platform.OS === 'web' 
+                ? localStorage.getItem('refresh_token')
+                : await SecureStore.getItemAsync('refresh_token');
             if (!refreshToken) return true;
 
             const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL || 'https://10.0.0.9:5000';
@@ -110,11 +128,19 @@ export const isExpired = async () => {
             if (response.ok){
                 const tokens = await response.json();
 
-                await SecureStore.setItemAsync('access_token', tokens.access_token);
-                if (tokens.refresh_token){
-                    await SecureStore.setItemAsync('refresh_token', tokens.refresh_token);
+                if (Platform.OS === 'web') {
+                    localStorage.setItem('access_token', tokens.access_token);
+                    if (tokens.refresh_token){
+                        localStorage.setItem('refresh_token', tokens.refresh_token);
+                    }
+                    localStorage.setItem('expires_at', String(Date.now()+(tokens.expires_in*1000)));
+                } else {
+                    await SecureStore.setItemAsync('access_token', tokens.access_token);
+                    if (tokens.refresh_token){
+                        await SecureStore.setItemAsync('refresh_token', tokens.refresh_token);
+                    }
+                    await SecureStore.setItemAsync('expires_at',String(Date.now()+(tokens.expires_in*1000)));
                 }
-                await SecureStore.setItemAsync('expires_at',String(Date.now()+(tokens.expires_in*1000)));
 
                 return false;
             }

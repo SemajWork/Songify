@@ -18,7 +18,9 @@ export default function Index() {
     var attempts = 0;
     const checkAuthStatus = async () => {
       try {
-        const token = await SecureStore.getItemAsync('access_token');
+        const token = Platform.OS === 'web' 
+          ? localStorage.getItem('access_token')
+          : await SecureStore.getItemAsync('access_token');
         if (token) {
           const expired = await isExpired();
           if(expired){
