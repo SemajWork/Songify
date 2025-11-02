@@ -53,7 +53,8 @@ export const useSpotifyAuth = () => {
             const { code} = response.params;
 
             console.log('Sending code to backend...');
-            fetch('http://10.0.0.9:5000/auth/token', {
+            const BACKEND_URL = process.env.BACKEND_URL || 'https://10.0.0.9:5000';
+            fetch(`${BACKEND_URL}/auth/token`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ code, code_verifier: request?.codeVerifier })
@@ -99,7 +100,8 @@ export const isExpired = async () => {
             const refreshToken = await SecureStore.getItemAsync('refresh_token');
             if (!refreshToken) return true;
 
-            const response = await fetch('http://10.0.0.9:5000/auth/refresh', {
+            const BACKEND_URL = process.env.BACKEND_URL || 'https://10.0.0.9:5000';
+            const response = await fetch(`${BACKEND_URL}/auth/refresh`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ refresh_token: refreshToken })
