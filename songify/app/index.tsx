@@ -1,5 +1,5 @@
 import { Button } from "@react-navigation/elements";
-import { Text, View, TextInput, StyleSheet, Dimensions, Image,TouchableOpacity, Linking, Alert} from "react-native";
+import { Text, View, TextInput, StyleSheet, Dimensions, Image,TouchableOpacity, Linking, Alert, Platform} from "react-native";
 import { useRouter } from "expo-router";
 import {useState, useEffect} from 'react'
 import { useSpotifyAuth, isExpired } from '../components/authService';
@@ -47,7 +47,14 @@ export default function Index() {
   }
   
   const redirect = (link: string) => {
-    Alert.alert(
+    if (Platform.OS === 'web') {
+      // On web, open link directly (window.open works in browser)
+      if (typeof window !== 'undefined') {
+        window.open(link, '_blank');
+      }
+    } else {
+      // On mobile, show alert confirmation
+      Alert.alert(
         `Warning you are about to be redirected to: ${link} `,
         'Are you sure you want to proceed',
         [
@@ -60,18 +67,20 @@ export default function Index() {
             onPress: () => Linking.openURL(link)
           },
         ],
-    );
+      );
+    }
   };
   return (
     <View
       style={{
         flex: 1,
         alignItems: "center",
-        backgroundColor:"white"
+        backgroundColor:"white",
+        width: '100%'
       }}
     >  
       <View style={{marginTop:height*0.15,flexDirection:"row", alignItems: "center"}}>
-        <Image source={require("../assets/images/MusicIcon.png")} style={{width:width*0.11,height:height*0.05, marginRight:width*0.02}}/>
+        <Image source={require("../assets/images/MusicIcon.png")} style={{width:width*0.15,height:height*0.08, marginRight:width*0.02}} resizeMode="contain"/>
         <Text style={{
           fontWeight:'bold',
           color:"black",
@@ -86,15 +95,13 @@ export default function Index() {
           fontSize: 20
         }}>Try Songify Today</Text>
       </View>
-      <View style={{marginTop:height*0.01}}>
+      <View style={{marginTop:height*0.01, width: width*0.8, alignItems: 'center'}}>
         <Text style={{
           fontWeight:'bold',
           color:"gray",
           fontSize: 20,
-          justifyContent:'center',
-          alignContent:"center",
-          width:width*0.6,
-          textAlign:'center'
+          textAlign:'center',
+          flexWrap: 'wrap'
         }}>Edit your playlists with the swipe of a finger</Text>
       </View>
       <View style={{marginTop:height*0.15}}>
@@ -107,7 +114,7 @@ export default function Index() {
           backgroundColor:'#1DB954',
           borderRadius:24,
         }} onPress={handleLogin} disabled={!request}>
-          <Image source={require("../assets/images/Spotify-icon-black-png-large-size.png")} style={{height:height*0.03, width: width*0.07, marginRight: width*0.05}}/>
+          <Image source={require("../assets/images/Spotify-icon-black-png-large-size.png")} style={{height:height*0.05, width: width*0.1, marginRight: width*0.05}} resizeMode="contain"/>
           <Text style={{fontSize:22,fontWeight:"medium"}}>Continue with Spotify</Text>
         </TouchableOpacity>
       </View>
@@ -118,7 +125,7 @@ export default function Index() {
       <View style={{flexDirection: "row", marginTop: 10}}>
         <TouchableOpacity onPress={() => 
           redirect("https://github.com/SemajWork")} style={{marginRight: 20}}>
-          <Image source={require("../assets/images/github.png")} style={{width: 50, height: 50}}/>
+          <Image source={require("../assets/images/github.png")} style={{width: 50, height: 50}} resizeMode="contain"/>
         </TouchableOpacity>
         <TouchableOpacity onPress={() => redirect("https://www.linkedin.com/in/james-ma-3b7b71345/")}>
           <Image source={require("../assets/images/linkedin.png")} style={{width: 50, height: 50}}/>

@@ -2,6 +2,7 @@ import * as AuthSession from 'expo-auth-session';
 import * as SecureStore from 'expo-secure-store';
 import { useAuthRequest, makeRedirectUri } from 'expo-auth-session';
 import { useEffect } from 'react';
+import { Platform } from 'react-native';
 
 var state = Math.random().toString(16);
 
@@ -11,7 +12,7 @@ export const useSpotifyAuth = () => {
         {
             clientId: clientId,
             scopes: ['user-read-email', 'user-read-private', 'playlist-modify-public', 'playlist-modify-private', 'playlist-read-private', 'playlist-read-collaborative'],
-            redirectUri: 'songify://auth',
+            redirectUri: Platform.OS === 'web' ? `${process.env.FRONTEND_URL}` : 'songify://auth',
             usePKCE: true,
         },
         {
