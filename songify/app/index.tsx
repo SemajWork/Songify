@@ -1,5 +1,6 @@
 import { Button } from "@react-navigation/elements";
-import { Text, View, TextInput, StyleSheet, Dimensions, Image,TouchableOpacity, Linking, Alert, Platform} from "react-native";
+import { Text, View, TextInput, StyleSheet, Dimensions, TouchableOpacity, Linking, Alert, Platform} from "react-native";
+import { Image } from 'expo-image';
 import { useRouter } from "expo-router";
 import {useState, useEffect} from 'react'
 import { useSpotifyAuth, isExpired } from '../components/authService';
@@ -79,23 +80,22 @@ export default function Index() {
         width: '100%'
       }}
     >  
-      <View style={{marginTop:height*0.15,flexDirection:"row", alignItems: "center"}}>
-        <Image source={require("../assets/images/MusicIcon.png")} style={{width:width*0.15,height:height*0.08, marginRight:width*0.02}} resizeMode="contain"/>
+      <View style={{marginTop: 60, flexDirection:"row", alignItems: "center", justifyContent: "center"}}>
+        <Image source={require("../assets/images/MusicIcon.png")} style={{width: 60, height: 60, marginRight: 10}} resizeMode="contain"/>
         <Text style={{
           fontWeight:'bold',
           color:"black",
           fontSize: 50
         }}>Songify</Text>
       </View>
-      <View style={{marginTop:height*0.1}}>
-        
+      <View style={{marginTop: 40, alignItems: 'center'}}>
         <Text style={{
           fontWeight:'bold',
           color:"black",
           fontSize: 20
         }}>Try Songify Today</Text>
       </View>
-      <View style={{marginTop:height*0.01, width: width*0.8, alignItems: 'center', paddingHorizontal: 20}}>
+      <View style={{marginTop: 16, width: width*0.8, alignItems: 'center', paddingHorizontal: 20}}>
         <Text style={{
           fontWeight:'bold',
           color:"gray",
@@ -103,31 +103,32 @@ export default function Index() {
           textAlign:'center'
         }}>Edit your playlists with the swipe of a finger</Text>
       </View>
-      <View style={{marginTop:height*0.15}}>
+      <View style={{marginTop: 60, alignItems: 'center'}}>
         <TouchableOpacity style={{
           flexDirection:"row",
           alignItems:'center',
           justifyContent:"center",
           width:width*0.8,
-          height: height*0.05,
+          minHeight: 50,
+          paddingVertical: 12,
           backgroundColor:'#1DB954',
           borderRadius:24,
         }} onPress={handleLogin} disabled={!request}>
-          <Image source={require("../assets/images/Spotify-icon-black-png-large-size.png")} style={{height:height*0.05, width: width*0.1, marginRight: width*0.05}} resizeMode="contain"/>
-          <Text style={{fontSize:22,fontWeight:"medium"}}>Continue with Spotify</Text>
+          <Image source={require("../assets/images/Spotify-icon-black-png-large-size.png")} style={{height: 30, width: 30, marginRight: 10}} resizeMode="contain"/>
+          <Text style={{fontSize:22,fontWeight:"medium", color: 'black'}}>Continue with Spotify</Text>
         </TouchableOpacity>
       </View>
       
-      <View style={{marginTop: height*0.2, }}>
+      <View style={{marginTop: 80, alignItems: 'center'}}>
         <Text style={{color:"black", fontSize:15}}>Like what you see? Follow me!</Text>
       </View>
-      <View style={{flexDirection: "row", marginTop: 10}}>
+      <View style={{flexDirection: "row", marginTop: 16, alignItems: 'center', justifyContent: 'center'}}>
         <TouchableOpacity onPress={() => 
           redirect("https://github.com/SemajWork")} style={{marginRight: 20}}>
           <Image source={require("../assets/images/github.png")} style={{width: 50, height: 50}} resizeMode="contain"/>
         </TouchableOpacity>
         <TouchableOpacity onPress={() => redirect("https://www.linkedin.com/in/james-ma-3b7b71345/")}>
-          <Image source={require("../assets/images/linkedin.png")} style={{width: 50, height: 50}}/>
+          <Image source={require("../assets/images/linkedin.png")} style={{width: 50, height: 50}} resizeMode="contain"/>
         </TouchableOpacity>
       </View>
       
