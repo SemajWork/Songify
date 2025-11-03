@@ -57,6 +57,51 @@ export const useSpotifyAuth = () => {
         }
     };
     useEffect(() => {
+        // Check if we're in a popup with a code in the URL (web fallback)
+        if (Platform.OS === 'web' && typeof window !== 'undefined') {
+            const urlParams = new URLSearchParams(window.location.search);
+            const code = urlParams.get('code');
+            const state = urlParams.get('state');
+            
+            if (code && window.opener) {
+                // We're in a popup with a code, process it manually
+                console.log('Manual code extraction from popup');
+                const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL || 'https://10.0.0.9:5000';
+                fetch(`${BACKEND_URL}/auth/token`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code, code_verifier: request?.codeVerifier })
+                })
+                .then(async res => {
+                    if (!res.ok) {
+                        const errorData = await res.json();
+                        throw new Error(`Backend error: ${errorData.error || 'Unknown error'}`);
+                    }
+                    return res.json();
+                })
+                .then(async tokens => {
+                    // Store tokens in parent window's localStorage
+                    if (window.opener) {
+                        window.opener.localStorage.setItem('access_token', tokens.access_token);
+                        window.opener.localStorage.setItem('refresh_token', tokens.refresh_token);
+                        window.opener.localStorage.setItem('expires_at', String(Date.now() + (tokens.expires_in*1000)));
+                    }
+                    // Also store in current window
+                    localStorage.setItem('access_token', tokens.access_token);
+                    localStorage.setItem('refresh_token', tokens.refresh_token);
+                    localStorage.setItem('expires_at', String(Date.now() + (tokens.expires_in*1000)));
+                    
+                    // Close popup
+                    window.close();
+                })
+                .catch(error => {
+                    console.error('Token exchange failed:', error);
+                    window.close();
+                });
+                return;
+            }
+        }
+        
         if (response?.type === 'success') {
             const { code} = response.params;
 
