@@ -91,6 +91,9 @@ export const useSpotifyAuth = () => {
             .then(async ()=>{
                 console.log('Fetching user');
                 await fetchUser();
+                if (Platform.OS === 'web') {
+                    window.close();
+                }
             })
             .catch(error => {
                 console.error('Token exchange failed:', error);
