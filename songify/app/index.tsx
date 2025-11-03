@@ -39,6 +39,26 @@ export default function Index() {
       }
     };
     checkAuthStatus();
+    
+    // Listen for auth success message from popup
+    if (Platform.OS === 'web' && typeof window !== 'undefined') {
+      const handleMessage = async (event: MessageEvent) => {
+        if (event.data?.type === 'AUTH_SUCCESS') {
+          // Small delay to ensure localStorage is updated
+          setTimeout(async () => {
+            const token = localStorage.getItem('access_token');
+            if (token) {
+              const expired = await isExpired();
+              if (!expired) {
+                router.replace('/home');
+              }
+            }
+          }, 100);
+        }
+      };
+      window.addEventListener('message', handleMessage);
+      return () => window.removeEventListener('message', handleMessage);
+    }
   }, [response]);
 
   const handleLogin = async () => {

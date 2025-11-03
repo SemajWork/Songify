@@ -67,36 +67,85 @@ export const useSpotifyAuth = () => {
                 // We're in a popup with a code, process it manually
                 console.log('Manual code extraction from popup');
                 const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL || 'https://10.0.0.9:5000';
+                
+                // Get code_verifier from parent window's sessionStorage or request
+                let codeVerifier = request?.codeVerifier;
+                if (!codeVerifier && window.opener) {
+                    // Try to get from parent window's sessionStorage
+                    try {
+                        const parentState = sessionStorage.getItem(`expo-auth-session-${state}`);
+                        if (parentState) {
+                            const parsed = JSON.parse(parentState);
+                            codeVerifier = parsed.codeVerifier;
+                        }
+                    } catch (e) {
+                        console.log('Could not get code_verifier from parent');
+                    }
+                }
+                
                 fetch(`${BACKEND_URL}/auth/token`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ code, code_verifier: request?.codeVerifier })
+                    body: JSON.stringify({ code, code_verifier: codeVerifier })
                 })
                 .then(async res => {
                     if (!res.ok) {
-                        const errorData = await res.json();
+                        const errorData = await res.json().catch(() => ({ error: 'Unknown error' }));
+                        console.error('Backend response error:', res.status, errorData);
                         throw new Error(`Backend error: ${errorData.error || 'Unknown error'}`);
                     }
                     return res.json();
                 })
                 .then(async tokens => {
+                    console.log('Tokens received, storing...');
+                    if (!tokens.access_token) {
+                        throw new Error('No access token in response');
+                    }
+                    
                     // Store tokens in parent window's localStorage
                     if (window.opener) {
                         window.opener.localStorage.setItem('access_token', tokens.access_token);
-                        window.opener.localStorage.setItem('refresh_token', tokens.refresh_token);
-                        window.opener.localStorage.setItem('expires_at', String(Date.now() + (tokens.expires_in*1000)));
+                        window.opener.localStorage.setItem('refresh_token', tokens.refresh_token || '');
+                        window.opener.localStorage.setItem('expires_at', String(Date.now() + ((tokens.expires_in || 3600) * 1000)));
+                        console.log('Tokens stored in parent window');
+                        
+                        // Signal parent window that auth succeeded
+                        window.opener.postMessage({ type: 'AUTH_SUCCESS' }, '*');
                     }
                     // Also store in current window
                     localStorage.setItem('access_token', tokens.access_token);
-                    localStorage.setItem('refresh_token', tokens.refresh_token);
-                    localStorage.setItem('expires_at', String(Date.now() + (tokens.expires_in*1000)));
+                    localStorage.setItem('refresh_token', tokens.refresh_token || '');
+                    localStorage.setItem('expires_at', String(Date.now() + ((tokens.expires_in || 3600) * 1000)));
+                    console.log('Tokens stored in popup window');
                     
-                    // Close popup
-                    window.close();
+                    // Clean up old ExpoWebBrowser redirect URLs
+                    Object.keys(localStorage).forEach(key => {
+                        if (key.startsWith('ExpoWebBrowser_RedirectUrl_')) {
+                            localStorage.removeItem(key);
+                        }
+                    });
+                    if (window.opener) {
+                        Object.keys(window.opener.localStorage).forEach(key => {
+                            if (key.startsWith('ExpoWebBrowser_RedirectUrl_')) {
+                                window.opener.localStorage.removeItem(key);
+                            }
+                        });
+                    }
+                    
+                    // Close popup after a brief delay
+                    setTimeout(() => {
+                        window.close();
+                    }, 200);
                 })
                 .catch(error => {
                     console.error('Token exchange failed:', error);
-                    window.close();
+                    console.error('Error details:', error.message);
+                    if (window.opener) {
+                        window.opener.postMessage({ type: 'AUTH_ERROR', error: error.message }, '*');
+                    }
+                    setTimeout(() => {
+                        window.close();
+                    }, 1000);
                 });
                 return;
             }
