@@ -12,7 +12,7 @@ export const useSpotifyAuth = () => {
         {
             clientId: clientId,
             scopes: ['user-read-email', 'user-read-private', 'playlist-modify-public', 'playlist-modify-private', 'playlist-read-private', 'playlist-read-collaborative'],
-            redirectUri: Platform.OS === 'web' ? `${process.env.EXPO_PUBLIC_FRONTEND_URL}` : 'songify://auth',
+            redirectUri: Platform.OS === 'web' ? `${process.env.EXPO_PUBLIC_FRONTEND_URL}/auth` : 'songify://auth',
             usePKCE: true,
         },
         {
