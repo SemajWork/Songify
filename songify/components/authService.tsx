@@ -12,7 +12,7 @@ export const useSpotifyAuth = () => {
         {
             clientId: clientId,
             scopes: ['user-read-email', 'user-read-private', 'playlist-modify-public', 'playlist-modify-private', 'playlist-read-private', 'playlist-read-collaborative'],
-            redirectUri: Platform.OS === 'web' ? `${process.env.EXPO_PUBLIC_FRONTEND_URL}/auth` : 'songify://auth',
+            redirectUri: Platform.OS === 'web' ? `${process.env.EXPO_PUBLIC_FRONTEND_URL}` : 'songify://auth',
             usePKCE: true,
         },
         {
@@ -66,7 +66,7 @@ export const useSpotifyAuth = () => {
             if (code && window.opener) {
                 // We're in a popup with a code, process it manually
                 console.log('Manual code extraction from popup');
-                const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL || 'https://10.0.0.9:5000';
+                const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL || 'http://10.0.0.9:5000';
                 
                 // Get code_verifier from parent window's sessionStorage or request
                 let codeVerifier = request?.codeVerifier;
@@ -86,7 +86,7 @@ export const useSpotifyAuth = () => {
                 fetch(`${BACKEND_URL}/auth/token`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ code, code_verifier: codeVerifier })
+                    body: JSON.stringify({ code, code_verifier: codeVerifier, redirect_uri:  Platform.OS === 'web' ? `${process.env.EXPO_PUBLIC_FRONTEND_URL}` : 'songify://auth' })
                 })
                 .then(async res => {
                     if (!res.ok) {
@@ -132,10 +132,10 @@ export const useSpotifyAuth = () => {
                         });
                     }
                     
-                    // Close popup after a brief delay
+                    // Close popup after a brief delay to ensure message is sent
                     setTimeout(() => {
                         window.close();
-                    }, 200);
+                    }, 500);
                 })
                 .catch(error => {
                     console.error('Token exchange failed:', error);
@@ -155,11 +155,11 @@ export const useSpotifyAuth = () => {
             const { code} = response.params;
 
             console.log('Sending code to backend...');
-            const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL || 'https://10.0.0.9:5000';
+            const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL || 'http://10.0.0.9:5000';
             fetch(`${BACKEND_URL}/auth/token`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ code, code_verifier: request?.codeVerifier })
+                body: JSON.stringify({ code, code_verifier: request?.codeVerifier, redirect_uri:  Platform.OS === 'web' ? `${process.env.EXPO_PUBLIC_FRONTEND_URL}` : 'songify://auth' })
             })
             .then(async res => {
                 if (!res.ok) {
@@ -186,7 +186,16 @@ export const useSpotifyAuth = () => {
                 console.log('Fetching user');
                 await fetchUser();
                 if (Platform.OS === 'web') {
-                    window.close();
+                    // Signal parent window that auth succeeded (if in popup)
+                    if (window.opener) {
+                        window.opener.postMessage({ type: 'AUTH_SUCCESS' }, '*');
+                    }
+                    // If not in popup, redirect directly
+                    if (!window.opener && typeof window !== 'undefined') {
+                        window.location.href = '/home';
+                    } else {
+                        window.close();
+                    }
                 }
             })
             .catch(error => {
@@ -215,7 +224,7 @@ export const isExpired = async () => {
                 : await SecureStore.getItemAsync('refresh_token');
             if (!refreshToken) return true;
 
-            const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL || 'https://10.0.0.9:5000';
+            const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL || 'http://10.0.0.9:5000';
             const response = await fetch(`${BACKEND_URL}/auth/refresh`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },

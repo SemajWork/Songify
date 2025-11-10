@@ -39,27 +39,41 @@ export default function Index() {
       }
     };
     checkAuthStatus();
-    
+  }, []);
+
+  useEffect(() => {
     // Listen for auth success message from popup
     if (Platform.OS === 'web' && typeof window !== 'undefined') {
       const handleMessage = async (event: MessageEvent) => {
+        // Only accept messages from same origin for security
+        if (event.origin !== window.location.origin && !event.origin.includes('amplifyapp.com')) {
+          return;
+        }
+        
         if (event.data?.type === 'AUTH_SUCCESS') {
-          // Small delay to ensure localStorage is updated
           setTimeout(async () => {
             const token = localStorage.getItem('access_token');
             if (token) {
               const expired = await isExpired();
               if (!expired) {
+                console.log('Redirecting');
                 router.replace('/home');
+              } else {
+                console.error('Token expired');
               }
+            } else {
+              console.error('No token found');
             }
-          }, 100);
+          }, 300);
+        } else if (event.data?.type === 'AUTH_ERROR') {
+          console.error('Auth error from popup:');
+          Alert.alert('Authentication Failed');
         }
       };
       window.addEventListener('message', handleMessage);
       return () => window.removeEventListener('message', handleMessage);
     }
-  }, [response]);
+  }, []);
 
   const handleLogin = async () => {
     try {

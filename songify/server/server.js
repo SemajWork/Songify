@@ -7,7 +7,7 @@ dotenv.config()
 const app = express();
 app.use(express.json());
 app.use(cors({
-    origin: ['http://localhost:8081', process.env.BACKENDHOST,process.env.BACKENDHOST2],
+    origin: ['http://localhost:8081', process.env.BACKENDHOST,process.env.BACKENDHOST2, process.env.REDIRECT_URI],
     credentials: true,
 })); //allow for cross origin requests
 
@@ -28,7 +28,7 @@ app.post('/auth/token', async (req,res) => {
                 grant_type: 'authorization_code',
                 code: code,
                 code_verifier: code_verifier,
-                redirect_uri: `${process.env.REDIRECT_URI}` /* put your scheme here such that {scheme}://{whatever callback uri you want} i.e boop://bop */
+                redirect_uri: req.body.redirect_uri || `${process.env.REDIRECT_URI}` /* put your scheme here such that {scheme}://{whatever callback uri you want} i.e boop://bop */
             }).toString()
         });
         

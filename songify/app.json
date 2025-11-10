@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "orientation": "all",
     "icon": "./assets/images/icon.png",
-    "scheme": "changethisbeforeyouuse", 
+    "scheme": "songify", 
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
