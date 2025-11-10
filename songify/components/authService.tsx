@@ -132,10 +132,10 @@ export const useSpotifyAuth = () => {
                         });
                     }
                     
-                    // Close popup after a brief delay to ensure message is sent
+                    // Close popup after a brief delay
                     setTimeout(() => {
                         window.close();
-                    }, 500);
+                    }, 200);
                 })
                 .catch(error => {
                     console.error('Token exchange failed:', error);
@@ -186,16 +186,7 @@ export const useSpotifyAuth = () => {
                 console.log('Fetching user');
                 await fetchUser();
                 if (Platform.OS === 'web') {
-                    // Signal parent window that auth succeeded (if in popup)
-                    if (window.opener) {
-                        window.opener.postMessage({ type: 'AUTH_SUCCESS' }, '*');
-                    }
-                    // If not in popup, redirect directly
-                    if (!window.opener && typeof window !== 'undefined') {
-                        window.location.href = '/home';
-                    } else {
-                        window.close();
-                    }
+                    window.close();
                 }
             })
             .catch(error => {

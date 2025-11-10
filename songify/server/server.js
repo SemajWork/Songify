@@ -14,21 +14,10 @@ app.use(cors({
 
 app.post('/auth/token', async (req,res) => {
     try{
-        const {code, code_verifier, redirect_uri} = req.body;
+        const {code, code_verifier} = req.body;
         if (!code){
             return res.status(400).json({error: 'No code provided'})
         }
-        
-        // Use redirect_uri from request body (must match authorization request) or fallback to env
-        const redirectUri = redirect_uri || process.env.REDIRECT_URI;
-        
-        if (!redirectUri) {
-            console.error('No redirect_uri provided in request or environment');
-            return res.status(400).json({error: 'Redirect URI is required'});
-        }
-        
-        
-        
         const response = await fetch('https://accounts.spotify.com/api/token',{
             method: 'POST',
             headers:{
@@ -39,7 +28,7 @@ app.post('/auth/token', async (req,res) => {
                 grant_type: 'authorization_code',
                 code: code,
                 code_verifier: code_verifier,
-                redirect_uri: redirectUri
+                redirect_uri: `${process.env.REDIRECT_URI}` /* put your scheme here such that {scheme}://{whatever callback uri you want} i.e boop://bop */
             }).toString()
         });
         
