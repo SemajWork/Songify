@@ -28,7 +28,7 @@ app.post('/auth/token', async (req,res) => {
                 grant_type: 'authorization_code',
                 code: code,
                 code_verifier: code_verifier,
-                redirect_uri: req.body.redirect_uri || `${process.env.REDIRECT_URI}` /* put your scheme here such that {scheme}://{whatever callback uri you want} i.e boop://bop */
+                redirect_uri: `${process.env.REDIRECT_URI}` /* put your scheme here such that {scheme}://{whatever callback uri you want} i.e boop://bop */
             }).toString()
         });
         
